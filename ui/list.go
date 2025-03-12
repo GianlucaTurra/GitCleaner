@@ -2,7 +2,7 @@ package ui
 
 import (
 	"bytes"
-	"log"
+	"fmt"
 	"os/exec"
 	"strings"
 
@@ -69,12 +69,12 @@ func (m Model) View() string {
 }
 
 func pushSelectedBranch(branchName string) []list.Item {
-	cmd := exec.Command("cmd/push.sh", branchName)
+	cmd := exec.Command("/bin/bash", "./cmd/push.sh", branchName)
 	var output bytes.Buffer
 	cmd.Stdout = &output
 	cmd.Stderr = &output
 	if err := cmd.Run(); err != nil {
-		log.Fatal(err)
+		fmt.Print(err)
 	}
 	var newItems []list.Item
 	for _, s := range Items {
@@ -93,7 +93,7 @@ func readBranches() tea.Msg {
 	cmd.Stdout = &output
 	cmd.Stderr = &output
 	if err := cmd.Run(); err != nil {
-		log.Fatal(err)
+		fmt.Print(err)
 	}
 	return branches(output.String())
 }
