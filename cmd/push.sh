@@ -7,6 +7,6 @@ fi
 REMOTE="$(git remote -v | head -n1 | cut -f1)"
 
 for VAR in "$@"; do
-    # git push $REMOTE $VAR
-    echo "git push ${REMOTE} ${VAR}"
+    git push -u $REMOTE $VAR
+    # echo "git push ${REMOTE} ${VAR}"
 done

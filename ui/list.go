@@ -14,6 +14,8 @@ var Items []list.Item
 
 type branches string
 
+type errorMsg struct{ err error }
+
 type Model struct {
 	List     list.Model
 	Choice   string
@@ -22,7 +24,7 @@ type Model struct {
 
 func (m Model) Init() tea.Cmd {
 	return func() tea.Msg {
-		return readBranches("cmd/getLocalNonUpstream.sh")
+		return readBranches()
 	}
 }
 
@@ -43,9 +45,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			i, ok := m.List.SelectedItem().(Item)
 			if ok {
 				m.Choice = string(i)
+				m.List.SetItems(pushSelectedBranch(string(i)))
 				// fmt.Print(cmd.ReadFromShellScript("cmd/push.sh"))
 			}
-			m.List.SetItems(pushSelectedBranch(string(i)))
 		case "enter":
 			i, ok := m.List.SelectedItem().(Item)
 			if ok {
@@ -67,6 +69,13 @@ func (m Model) View() string {
 }
 
 func pushSelectedBranch(branchName string) []list.Item {
+	cmd := exec.Command("cmd/push.sh", branchName)
+	var output bytes.Buffer
+	cmd.Stdout = &output
+	cmd.Stderr = &output
+	if err := cmd.Run(); err != nil {
+		log.Fatal(err)
+	}
 	var newItems []list.Item
 	for _, s := range Items {
 		if s == Item(branchName) {
@@ -78,8 +87,8 @@ func pushSelectedBranch(branchName string) []list.Item {
 	return Items
 }
 
-func readBranches(scriptName string) tea.Msg {
-	cmd := exec.Command(scriptName)
+func readBranches() tea.Msg {
+	cmd := exec.Command("cmd/getLocalNonUpstream.sh")
 	var output bytes.Buffer
 	cmd.Stdout = &output
 	cmd.Stderr = &output
