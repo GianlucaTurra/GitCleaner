@@ -6,7 +6,6 @@ fi
 
 REMOTE="$(git remote -v | head -n1 | cut -f1)"
 
-for VAR in "$@"; do
-    git push -u $REMOTE $VAR
-    # echo "git push ${REMOTE} ${VAR}"
+for BRANCH in "$@"; do
+    git push -u $REMOTE $BRANCH
 done

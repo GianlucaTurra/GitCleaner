@@ -46,7 +46,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if ok {
 				m.Choice = string(i)
 				m.List.SetItems(pushSelectedBranch(string(i)))
-				// fmt.Print(cmd.ReadFromShellScript("cmd/push.sh"))
+			}
+		case "d":
+			i, ok := m.List.SelectedItem().(Item)
+			if ok {
+				m.Choice = string(i)
+				m.List.SetItems(deleteSelectedBranch(string(i)))
 			}
 		case "enter":
 			i, ok := m.List.SelectedItem().(Item)
@@ -83,8 +88,25 @@ func pushSelectedBranch(branchName string) []list.Item {
 		}
 		newItems = append(newItems, s)
 	}
-	Items = newItems
-	return Items
+	return newItems
+}
+
+func deleteSelectedBranch(branchName string) []list.Item {
+	cmd := exec.Command("/bin/bash", "./cmd/delete.sh", branchName)
+	var output bytes.Buffer
+	cmd.Stdout = &output
+	cmd.Stderr = &output
+	if err := cmd.Run(); err != nil {
+		fmt.Print(err)
+	}
+	var newItems []list.Item
+	for _, s := range Items {
+		if s == Item(branchName) {
+			continue
+		}
+		newItems = append(newItems, s)
+	}
+	return newItems
 }
 
 func readBranches() tea.Msg {
