@@ -11,12 +11,11 @@ import (
 )
 
 const listHeight = 14
+const defaultWidth = 20
 
 func main() {
 	shellOutput := cmd.ReadFromShellScript("./cmd/getLocalNonUpstream.sh")
 	ui.Items = cmd.ParseShellOutput(shellOutput)
-
-	const defaultWidth = 20
 
 	l := list.New(ui.Items, ui.ItemDelegate{}, defaultWidth, listHeight)
 	l.Title = "Branches"
