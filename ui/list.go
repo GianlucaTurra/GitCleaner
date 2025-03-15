@@ -10,11 +10,26 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-var Items []list.Item
-
+// Message type for initializing the view
 type branches string
 
+// Message types for input handling
 type errorMsg struct{ err error }
+type pushMsg struct{ branchName string }
+type deleteMsg struct{ branchName string }
+
+// Wrapper functions for executing commands with arguements
+func deleteBranch(branchName string) tea.Cmd {
+	return func() tea.Msg {
+		return deleteMsg{branchName}
+	}
+}
+
+func pushBranch(branchName string) tea.Cmd {
+	return func() tea.Msg {
+		return pushMsg{branchName}
+	}
+}
 
 type Model struct {
 	List     list.Model
@@ -36,6 +51,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case branches:
 		m.List.SetItems(parseShellOutput(string(msg)))
 		return m, nil
+	case deleteMsg:
+		items := m.deleteSelectedBranch(msg.branchName)
+		m.List.SetItems(items)
+	case pushMsg:
+		items := m.pushSelectedBranch(msg.branchName)
+		m.List.SetItems(items)
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
 		case "q", "ctrl+c":
@@ -45,14 +66,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			i, ok := m.List.SelectedItem().(Item)
 			if ok {
 				m.Choice = string(i)
-				m.List.SetItems(pushSelectedBranch(string(i)))
 			}
+			return m, pushBranch(string(i))
 		case "d":
 			i, ok := m.List.SelectedItem().(Item)
 			if ok {
 				m.Choice = string(i)
-				m.List.SetItems(deleteSelectedBranch(string(i)))
 			}
+			return m, deleteBranch(string(i))
 		case "enter":
 			i, ok := m.List.SelectedItem().(Item)
 			if ok {
@@ -73,7 +94,7 @@ func (m Model) View() string {
 	return "\n" + m.List.View()
 }
 
-func pushSelectedBranch(branchName string) []list.Item {
+func (m Model) pushSelectedBranch(branchName string) []list.Item {
 	cmd := exec.Command("/bin/bash", "./cmd/push.sh", branchName)
 	var output bytes.Buffer
 	cmd.Stdout = &output
@@ -82,7 +103,7 @@ func pushSelectedBranch(branchName string) []list.Item {
 		fmt.Print(err)
 	}
 	var newItems []list.Item
-	for _, s := range Items {
+	for _, s := range m.List.Items() {
 		if s == Item(branchName) {
 			continue
 		}
@@ -91,7 +112,7 @@ func pushSelectedBranch(branchName string) []list.Item {
 	return newItems
 }
 
-func deleteSelectedBranch(branchName string) []list.Item {
+func (m Model) deleteSelectedBranch(branchName string) []list.Item {
 	cmd := exec.Command("/bin/bash", "./cmd/delete.sh", branchName)
 	var output bytes.Buffer
 	cmd.Stdout = &output
@@ -100,7 +121,7 @@ func deleteSelectedBranch(branchName string) []list.Item {
 		fmt.Print(err)
 	}
 	var newItems []list.Item
-	for _, s := range Items {
+	for _, s := range m.List.Items() {
 		if s == Item(branchName) {
 			continue
 		}
@@ -110,7 +131,7 @@ func deleteSelectedBranch(branchName string) []list.Item {
 }
 
 func readBranches() tea.Msg {
-	cmd := exec.Command("cmd/getLocalNonUpstream.sh")
+	cmd := exec.Command("cmd/getBranches.sh")
 	var output bytes.Buffer
 	cmd.Stdout = &output
 	cmd.Stderr = &output
