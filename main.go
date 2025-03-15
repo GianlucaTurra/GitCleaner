@@ -21,6 +21,7 @@ func main() {
 	l.Title = "Branches"
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
+	l.AdditionalFullHelpKeys = ui.ShortHelp
 	l.Styles.Title = ui.TitleStyle
 	l.Styles.PaginationStyle = ui.PaginationStyle
 	l.Styles.HelpStyle = ui.HelpStyle
