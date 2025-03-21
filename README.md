@@ -7,6 +7,7 @@ Performs `git fetch -p` at startup to ensure the refs are up to date.
 
 ## Honest disclaimer
 
-If you want a real tool to manage git repository look out to
-[LazyGit](https://github.com/jesseduffield/lazygit), this one is just a fancy
-laerning project. :)
+This is a fancy leaning project to mimic one of the functionalities of
+[LazyGit](https://github.com/jesseduffield/lazygit).
+
+:)
